@@ -62,7 +62,7 @@ h3 { font-size: 1.5rem; letter-spacing: -.02em; }
 .brand-light span { color: #a6a6a6; }
 
 /* ---------- Header ---------- */
-.header { position: fixed; inset: 0 0 auto; z-index: 100; height: var(--header-h); display: flex; align-items: center; background: rgba(255, 255, 255, .92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid transparent; transition: border-color .3s var(--ease); }
+.header { position: fixed; inset: 0 0 auto; z-index: 100; height: var(--header-h); display: flex; align-items: center; background: var(--paper); border-bottom: 1px solid transparent; transition: border-color .3s var(--ease); }
 .header.scrolled { border-color: var(--line); }
 .header-inner { display: flex; align-items: center; justify-content: space-between; }
 .nav { display: flex; align-items: center; gap: 1.8rem; }
