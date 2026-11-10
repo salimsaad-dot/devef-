@@ -137,7 +137,7 @@ h3 { font-size: 1.5rem; letter-spacing: -.02em; }
 
 /* ---------- Visit ---------- */
 .visit { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(2rem, 5vw, 4rem); align-items: center; }
-.address { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -.02em; line-height: 1.15; margin: 1.2rem 0 1.8rem; }
+.address { font-family: var(--display); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -.02em; line-height: 1.15; margin: 1.2rem 0 1.8rem; max-width: 22ch; text-wrap: balance; }
 .visit-cta { display: flex; flex-wrap: wrap; gap: .8rem; }
 .facts { list-style: none; border: 2px solid var(--ink); border-radius: var(--r); padding: .4rem 1.4rem; }
 .facts li { display: grid; gap: .1rem; padding: 1rem 0; }
