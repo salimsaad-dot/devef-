@@ -163,7 +163,6 @@ h3 { font-size: 1.5rem; letter-spacing: -.02em; }
 .f .invalid { border-color: #c62828; }
 .f textarea { resize: vertical; }
 .pills { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
-.pills-3 { grid-template-columns: repeat(3, 1fr); }
 .pills label { position: relative; cursor: pointer; }
 .pills input { position: absolute; opacity: 0; pointer-events: none; }
 .pills span { display: grid; place-items: center; min-height: 48px; text-align: center; padding: .6rem .4rem; border-radius: 10px; border: 2px solid var(--line); background: var(--paper-2); font-weight: 500; font-size: .95rem; transition: background .2s var(--ease), border-color .2s var(--ease), scale .12s var(--ease); }
@@ -184,6 +183,37 @@ h3 { font-size: 1.5rem; letter-spacing: -.02em; }
 /* Pre-filled fields glow once after tapping a service on the menu */
 .f .prefilled { animation: prefill 1.1s var(--ease) .15s backwards; }
 @keyframes prefill { from { border-color: var(--ink); box-shadow: 0 0 0 5px rgba(255, 194, 26, .85); } }
+
+/* ---------- Booking: free times (preview) ---------- */
+[hidden] { display: none !important; }
+.preview-note { margin-top: 1.4rem; padding: .9rem 1.1rem; border: 2px dashed var(--ink); border-radius: var(--r); font-size: .95rem; max-width: 26rem; }
+.preview-note a { font-weight: 700; text-underline-offset: 3px; white-space: nowrap; }
+.preview-note a i { font-size: .8em; }
+.tag { display: inline-block; background: var(--ink); color: var(--sun); font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: .15rem .55rem; border-radius: 6px; margin-right: .3rem; vertical-align: .1em; }
+.slot-hint { font-size: .9rem; color: var(--muted); margin-bottom: .6rem; }
+.slot-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
+.slot { position: relative; cursor: pointer; }
+.slot input { position: absolute; opacity: 0; pointer-events: none; }
+.slot span { display: grid; place-items: center; gap: .05rem; min-height: 56px; padding: .45rem .3rem; border-radius: 10px; border: 2px solid var(--line); background: var(--paper-2); font-weight: 700; font-size: .95rem; line-height: 1.2; text-align: center; transition: background .2s var(--ease), border-color .2s var(--ease), scale .12s var(--ease); }
+.slot small { font-weight: 500; font-size: .74rem; color: var(--muted); }
+.slot.is-last small { color: #9a5b00; font-weight: 700; }
+.slot input:checked + span { background: var(--sun); border-color: var(--ink); }
+.slot input:checked + span small { color: var(--ink); }
+.slot input:focus-visible + span { outline: 3px solid var(--ink); outline-offset: 2px; }
+.slot:active span { scale: .97; }
+.slot.is-off { cursor: not-allowed; }
+.slot.is-off span { background: transparent; border-style: dashed; color: #9a9a9a; scale: 1; }
+.slot.is-off small { color: #9a9a9a; }
+#timeField.invalid .slot:not(.is-off) span { border-color: #c62828; }
+.f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+
+.booked { text-align: center; justify-items: center; }
+.booked:focus { outline: none; }
+.booked-icon { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--sun); border: 2px solid var(--ink); font-size: 1.6rem; }
+.booked h3 { font-size: 2rem; }
+.booked-what { font-family: var(--display); font-weight: 700; font-size: 1.2rem; line-height: 1.3; }
+.booked-small { color: var(--muted); font-size: .92rem; max-width: 26rem; }
+.booked-actions { display: grid; gap: .7rem; width: 100%; margin-top: .4rem; }
 
 /* ---------- Footer ---------- */
 .footer { background: var(--ink); color: #cfcfcf; padding: 3.2rem 0 2rem; }
@@ -220,7 +250,8 @@ h3 { font-size: 1.5rem; letter-spacing: -.02em; }
   .strip { height: 340px; gap: .6rem; }
   .gallery { gap: .6rem; }
   .hero-cta .btn { flex: 1 1 100%; }
-  .pills-3 { grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+  .slot-grid { grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+  .f-row { grid-template-columns: 1fr; }
   .pills span { font-size: .88rem; }
   .form { box-shadow: 5px 5px 0 var(--ink); }
 }

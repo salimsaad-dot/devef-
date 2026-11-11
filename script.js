@@ -1,6 +1,4 @@
 // De-Vef Beauty · North Legon
-const WHATSAPP_NUMBER = "233546626332"; // international format, no "+" or leading 0
-const TIMEZONE = "Africa/Accra";
 // Services that use braiding hair (shows the "bring your own / provide it" question)
 const BRAID_SERVICES = ["Cornrows", "Knotless braids", "Curly braids"];
 
@@ -48,18 +46,11 @@ document.addEventListener("DOMContentLoaded", () => {
     reveals.forEach((el) => el.classList.add("in"));
   }
 
-  /* ---------- Booking form → WhatsApp ---------- */
+  /* ---------- Booking form: hair question + service pre-fill ---------- */
   const form = document.getElementById("bookForm");
   const service = document.getElementById("service");
-  const dateInput = document.getElementById("date");
-  const nameInput = document.getElementById("name");
   const hairField = document.getElementById("hairField");
-  const err = document.getElementById("err");
 
-  // Earliest bookable day = today (Ghana time)
-  dateInput.min = new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(new Date()); // YYYY-MM-DD
-
-  const hairShown = () => hairField.classList.contains("is-open");
   function toggleHair() {
     const show = BRAID_SERVICES.includes(service.value);
     hairField.classList.toggle("is-open", show);
@@ -83,43 +74,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-service]").forEach((a) =>
     a.addEventListener("click", () => {
       service.value = a.dataset.service;
-      service.classList.remove("invalid");
-      toggleHair();
+      service.dispatchEvent(new Event("change")); // updates the hair question and the free times
       if (formInView()) glow(); else glowPending = true;
     })
   );
 
-  dateInput.addEventListener("change", () => dateInput.classList.remove("invalid"));
-  nameInput.addEventListener("input", () => nameInput.classList.remove("invalid"));
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    err.textContent = "";
-    const missing = [service, dateInput, nameInput].filter((el) => !el.value.trim());
-    form.querySelectorAll(".invalid").forEach((el) => el.classList.remove("invalid"));
-    if (missing.length) {
-      missing.forEach((el) => el.classList.add("invalid"));
-      missing[0].focus();
-      err.textContent = "Please fill in the highlighted fields.";
-      return;
-    }
-
-    const niceDate = new Date(dateInput.value + "T12:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
-    const notes = document.getElementById("notes").value.trim();
-
-    const lines = [
-      "Hello De-Vef! I'd like to book an appointment.",
-      "",
-      `*Service:* ${service.value}`,
-      `*Day:* ${niceDate}`,
-      `*Time:* ${form.slot.value} (please confirm the exact time)`,
-    ];
-    if (hairShown()) lines.push(`*Hair:* ${form.hair.value}`);
-    lines.push(`*Name:* ${nameInput.value.trim()}`);
-    if (notes) lines.push(`*Notes:* ${notes}`);
-
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank", "noopener");
-  });
+  // Free times, validation and booking: booking.js (preview mode, see demo-store.js)
 
   document.getElementById("year").textContent = new Date().getFullYear();
 });

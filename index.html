@@ -60,9 +60,9 @@
         <div class="hero-copy">
           <p class="where"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> North Legon · behind the new Papa's Pizza</p>
           <h1><span class="mark">DE-VEF</span> North Legon's spot for braids, installs &amp; nails.</h1>
-          <p class="lead">Cornrows, knotless, curly braids, frontals, weave-ons, manicures and pedicures. Pick your style and book in seconds on WhatsApp.</p>
+          <p class="lead">Cornrows, knotless, curly braids, frontals, weave-ons, manicures and pedicures. Pick your style, see our free times and book in seconds.</p>
           <div class="hero-cta">
-            <a href="#book" class="btn"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Book an appointment</a>
+            <a href="#book" class="btn">Book an appointment</a>
             <a href="#services" class="btn btn-line">See services</a>
           </div>
         </div>
@@ -150,7 +150,9 @@
       <div class="wrap book">
         <div class="book-copy">
           <h2>Book your slot</h2>
-          <p>Choose your service, day and the time that suits you. WhatsApp opens with your request filled in. Send it and we'll confirm your exact time.</p>
+          <p>Pick your service and day to see the times we're free. Long styles like knotless only show times when a stylist is free for the whole appointment, so two clients never clash.</p>
+          <!-- PITCH DEMO: remove this note once real hours and a real database are in -->
+          <p class="preview-note"><span class="tag">Preview</span> Times are examples and nothing is saved. This shows how online booking would work. <a href="bookings.html">See the owner's bookings page <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></p>
         </div>
 
         <form class="form" id="bookForm" novalidate>
@@ -179,13 +181,10 @@
               <input id="date" type="date" required />
             </div>
 
-            <fieldset class="f f-gap">
-              <legend>Time of day</legend>
-              <div class="pills pills-3">
-                <label><input type="radio" name="slot" value="Morning" checked /><span>Morning</span></label>
-                <label><input type="radio" name="slot" value="Afternoon" /><span>Afternoon</span></label>
-                <label><input type="radio" name="slot" value="Evening" /><span>Evening</span></label>
-              </div>
+            <fieldset class="f f-gap" id="timeField">
+              <legend>Start time</legend>
+              <p class="slot-hint" id="slotHint">Choose a service and a day to see free times.</p>
+              <div class="slot-grid" id="slots"></div>
             </fieldset>
 
             <!-- Only for braids; slides open/closed instead of snapping -->
@@ -202,19 +201,37 @@
             </div>
           </div>
 
-          <div class="f">
-            <label for="name">Your name</label>
-            <input id="name" type="text" autocomplete="name" required />
+          <div class="f-row">
+            <div class="f">
+              <label for="name">Your name</label>
+              <input id="name" type="text" autocomplete="name" maxlength="60" required />
+            </div>
+            <div class="f">
+              <label for="phone">Phone</label>
+              <input id="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="024 123 4567" required />
+            </div>
           </div>
 
           <div class="f">
             <label for="notes">Style or notes <span class="opt">(optional)</span></label>
-            <textarea id="notes" rows="2" placeholder="e.g. Medium knotless, waist length · red nails"></textarea>
+            <textarea id="notes" rows="2" maxlength="300" placeholder="e.g. Medium knotless, waist length · red nails"></textarea>
           </div>
 
           <p class="err" id="err" role="alert"></p>
-          <button class="btn btn-block" type="submit"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Send on WhatsApp</button>
+          <button class="btn btn-block" type="submit" id="bookBtn">Book this time</button>
         </form>
+
+        <!-- Shown after booking -->
+        <div class="form booked" id="booked" tabindex="-1" hidden>
+          <p class="booked-icon" aria-hidden="true"><i class="fa-solid fa-check"></i></p>
+          <h3>You're booked!</h3>
+          <p class="booked-what" id="bookedWhat"></p>
+          <p class="booked-small">In the real version, De-Vef gets an alert straight away and this time is no longer free for anyone else.</p>
+          <div class="booked-actions">
+            <a class="btn btn-block" href="bookings.html">See it on the owner's page <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <button class="btn btn-line btn-block" type="button" id="bookAgain">Book another</button>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -233,5 +250,6 @@
   <a href="https://wa.me/233546626332" class="wa" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
 
   <script src="script.js"></script>
+  <script type="module" src="booking.js"></script>
 </body>
 </html>
