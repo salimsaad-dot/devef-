@@ -20,7 +20,8 @@ export const DURATION = {
 };
 
 const KEY = "devef-demo-v1";
-const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || { added: [], removed: [] }; } catch { return { added: [], removed: [] }; } };
+const blank = () => ({ added: [], removed: [], confirmed: [] });
+const read = () => { try { return { ...blank(), ...JSON.parse(localStorage.getItem(KEY)) }; } catch { return blank(); } };
 const write = (s) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {} };
 
 /* ---------- Dates (Ghana = UTC all year) ---------- */
@@ -59,6 +60,7 @@ function sampleFor(date) {
         out.push({ id: `s_${date}_${chair}_${t}`, date, start: t, dur, chair, service, name,
           phone: `0${[24, 20, 54, 55, 59][Math.floor(r() * 5)]} ${String(100 + Math.floor(r() * 900))} ${String(1000 + Math.floor(r() * 9000))}`,
           notes: NOTES[Math.floor(r() * NOTES.length)], sample: true });
+        out.at(-1).confirmed = [...out.at(-1).id].reduce((a, c) => a + c.charCodeAt(0), 0) % 3 !== 0;
         t += dur;
       } else t += 2 + Math.floor(r() * 3); // chunky gaps, so long styles still find room
     }
@@ -71,6 +73,7 @@ export function bookingsOn(date) {
   const s = read();
   return [...sampleFor(date), ...s.added.filter((b) => b.date === date)]
     .filter((b) => !s.removed.includes(b.id))
+    .map((b) => ({ ...b, confirmed: b.confirmed || s.confirmed.includes(b.id) }))
     .sort((a, b) => a.start - b.start || a.chair - b.chair);
 }
 
@@ -111,8 +114,22 @@ export function book({ date, start, service, name, phone, notes, hair }) {
 export function cancel(id) {
   const s = read();
   s.added = s.added.filter((b) => b.id !== id);
+  s.confirmed = s.confirmed.filter((x) => x !== id);
   if (id.startsWith("s_")) s.removed.push(id);
   write(s);
+}
+
+/** Marks a booking as confirmed (the owner has sent the client a WhatsApp) */
+export function confirmBooking(id) {
+  const s = read();
+  if (!s.confirmed.includes(id)) s.confirmed.push(id);
+  write(s);
+}
+
+/** The WhatsApp message the owner sends to confirm (real version: wa.me/<client number>?text=...) */
+export function confirmText(b) {
+  const day = dayLabel(b.date, { weekday: "short", day: "numeric", month: "short" });
+  return `Hi ${b.name.trim().split(/\s+/)[0]} 😊 Your ${b.service.toLowerCase()} on ${day} at ${hourLabel(b.start)} is confirmed. See you then! De-Vef Beauty`;
 }
 
 export function resetDemo() { try { localStorage.removeItem(KEY); } catch {} }
