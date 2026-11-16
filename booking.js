@@ -1,5 +1,5 @@
 // De-Vef Beauty · booking form (PREVIEW: data from demo-store.js, kept in this browser only)
-import { DURATION, todayISO, lastDay, isOpenDay, dayLabel, hourLabel, startTimes, book, FullError, bookingText } from "./demo-store.js";
+import { DURATION, todayISO, lastDay, isOpenDay, dayLabel, hourLabel, startTimes, book, FullError, bookingText, BOOKING_WA } from "./demo-store.js";
 
 const $ = (id) => document.getElementById(id);
 const form = $("bookForm"), service = $("service"), date = $("date"), slots = $("slots"), hint = $("slotHint");
@@ -81,10 +81,10 @@ form.addEventListener("submit", (e) => {
   }
 });
 
-// PREVIEW: shows the message instead of sending it.
-// Real version: window.open(`https://wa.me/233546626332?text=${encodeURIComponent(bookingText(lastBooking))}`)
+// Opens WhatsApp with the booking written out. DEMO: goes to BOOKING_WA (Salim), not De-Vef.
 $("sendWa").addEventListener("click", () => {
   if (!lastBooking) return;
+  window.open(`https://wa.me/${BOOKING_WA}?text=${encodeURIComponent(bookingText(lastBooking))}`, "_blank", "noopener");
   $("waText").textContent = bookingText(lastBooking);
   $("sendWa").hidden = true;
   $("waSent").hidden = false;

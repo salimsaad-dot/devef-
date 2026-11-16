@@ -1,5 +1,5 @@
 // De-Vef Beauty · owner's bookings page (PREVIEW: sample data, this browser only)
-import { SAMPLE, todayISO, addDays, lastDay, isOpenDay, dayLabel, hourLabel, bookingsOn, cancel, resetDemo, confirmBooking, confirmText, DURATION, chairFree, addWalkIn, FullError } from "./demo-store.js";
+import { SAMPLE, todayISO, addDays, lastDay, isOpenDay, dayLabel, hourLabel, bookingsOn, cancel, resetDemo, confirmBooking, confirmText, waNumber, DURATION, chairFree, addWalkIn, FullError } from "./demo-store.js";
 
 const $ = (id) => document.getElementById(id);
 const board = $("board"), detail = $("detail"), dayIn = $("day");
@@ -13,6 +13,7 @@ while (!isOpenDay(day)) day = addDays(day, 1);
 if (mine && mine.date >= todayISO()) day = mine.date;
 let selected = mine?.id || null;
 let sent = null; // booking whose confirmation message is on show
+let sentReal = false; // true if WhatsApp was really opened for it
 let walk = null;  // { chair, start, service, name } while the "Add walk-in" form is open
 const nowHour = () => new Date().getUTCHours(); // Ghana = UTC
 
@@ -125,7 +126,9 @@ function showDetail(b) {
     </div>
     <p class="detail-note" id="detailNote" role="status"></p>
     ${sent === b.id ? `<div class="wa-sent">
-      <p class="wa-label">Sent to ${esc(first(b.name))} on WhatsApp (preview: nothing was really sent)</p>
+      <p class="wa-label">${sentReal
+        ? `Opened in WhatsApp to ${esc(b.phone)}. Tap Send there.`
+        : `Sent to ${esc(first(b.name))} on WhatsApp (sample client: nothing was really sent)`}</p>
       <p class="wa-bubble">${esc(confirmText(b))}</p>
     </div>` : ""}`;
   detail.hidden = false;
@@ -162,7 +165,12 @@ detail.addEventListener("click", (e) => {
   }
   const ok = e.target.closest("[data-confirm]");
   if (ok) {
-    // Real version: window.open(`https://wa.me/${ghanaNumber(b.phone)}?text=${encodeURIComponent(confirmText(b))}`) then mark confirmed.
+    // Bookings made on the site open WhatsApp to the number the client typed.
+    // Sample bookings never do: their made-up numbers could belong to real people.
+    const b = bookingsOn(day).find((x) => x.id === ok.dataset.confirm);
+    const to = b && b.mine ? waNumber(b.phone) : "";
+    if (to) window.open(`https://wa.me/${to}?text=${encodeURIComponent(confirmText(b))}`, "_blank", "noopener");
+    sentReal = Boolean(to);
     confirmBooking(ok.dataset.confirm);
     sent = ok.dataset.confirm;
     render();

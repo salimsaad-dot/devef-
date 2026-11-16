@@ -5,6 +5,20 @@
 // TODO before going live: real hours, chairs and durations from De-Vef, and a
 // real database (same approach as Lee's: Firebase + locked slots).
 
+// DEMO: client booking messages go to Salim's own WhatsApp, not De-Vef's, so the
+// pitch can show a real message arriving without sending her test bookings.
+// Going live: change to De-Vef's number, 233546626332.
+export const BOOKING_WA = "233577428684";
+
+/** Ghana phone as typed ("024 123 4567", "+233 24…") -> "233241234567", or "" if it doesn't look right */
+export function waNumber(phone = "") {
+  let d = String(phone).replace(/\D/g, "");
+  if (d.startsWith("00")) d = d.slice(2);
+  if (d.startsWith("0") && d.length === 10) d = "233" + d.slice(1);
+  else if (d.length === 9) d = "233" + d;
+  return /^233\d{9}$/.test(d) ? d : "";
+}
+
 export const SAMPLE = {
   chairs: 3,                    // people who can work on clients at the same time
   openDays: [1, 2, 3, 4, 5, 6], // Mon–Sat (0 = Sunday)
