@@ -26,6 +26,18 @@
   <main class="wrap owner-main">
     <p class="preview-note owner-note"><span class="tag">Preview</span> This is what De-Vef would see after signing in: every booking, chair by chair. Names are samples. Bookings you make on the site show up here.</p>
 
+    <section class="upcoming" aria-labelledby="upTitle">
+      <div class="up-head">
+        <h2 id="upTitle">Upcoming</h2>
+        <div class="seg" role="group" aria-label="Show">
+          <button type="button" id="upWait" aria-pressed="true">To confirm</button>
+          <button type="button" id="upAll" aria-pressed="false">All</button>
+        </div>
+      </div>
+      <ul class="up-list" id="upList"></ul>
+      <button type="button" class="link up-more" id="upMore" hidden>Show more</button>
+    </section>
+
     <div class="owner-head">
       <h1 id="dayTitle">Today</h1>
       <div class="day-nav">

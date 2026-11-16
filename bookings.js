@@ -1,5 +1,5 @@
 // De-Vef Beauty · owner's bookings page (PREVIEW: sample data, this browser only)
-import { SAMPLE, todayISO, addDays, lastDay, isOpenDay, dayLabel, hourLabel, bookingsOn, cancel, resetDemo, confirmBooking, confirmText, waNumber, DURATION, chairFree, addWalkIn, FullError } from "./demo-store.js";
+import { SAMPLE, todayISO, addDays, lastDay, isOpenDay, dayLabel, hourLabel, bookingsOn, cancel, resetDemo, upcoming, confirmBooking, confirmText, waNumber, DURATION, chairFree, addWalkIn, FullError } from "./demo-store.js";
 
 const $ = (id) => document.getElementById(id);
 const board = $("board"), detail = $("detail"), dayIn = $("day");
@@ -16,11 +16,41 @@ let sent = null; // booking whose confirmation message is on show
 let sentReal = false; // true if WhatsApp was really opened for it
 let walk = null;  // { chair, start, service, name } while the "Add walk-in" form is open
 const nowHour = () => new Date().getUTCHours(); // Ghana = UTC
+let upMode = "wait"; // "wait" = to confirm, "all" = everything coming up
+let upShow = 5;
 
 dayIn.min = todayISO();
 dayIn.max = lastDay();
 
+function shortDay(iso) {
+  if (iso === todayISO()) return "Today";
+  if (iso === addDays(todayISO(), 1)) return "Tomorrow";
+  return dayLabel(iso, { weekday: "short", day: "numeric", month: "short" });
+}
+
+function renderUpcoming() {
+  const all = upcoming();
+  const waiting = all.filter((b) => !b.confirmed);
+  const list = upMode === "wait" ? waiting : all;
+  $("upWait").textContent = `To confirm (${waiting.length})`;
+  $("upWait").setAttribute("aria-pressed", upMode === "wait");
+  $("upAll").setAttribute("aria-pressed", upMode === "all");
+  $("upList").innerHTML = list.length
+    ? list.slice(0, upShow).map((b) => `
+      <li><button type="button" class="up-row${b.id === selected ? " is-sel" : ""}" data-go="${esc(b.id)}" data-date="${esc(b.date)}">
+        <span class="up-when"><b>${esc(shortDay(b.date))}</b>${hourLabel(b.start)}</span>
+        <span class="up-what"><b>${esc(b.service)}</b>${esc(first(b.name))}${b.mine ? ` <em class="up-new">New</em>` : ""}${b.walkin ? ` <em class="up-walk">Walk-in</em>` : ""}</span>
+        <span class="up-state ${b.confirmed ? "is-ok" : "is-wait"}">${b.confirmed
+          ? `<i class="fa-solid fa-circle-check" aria-hidden="true"></i><span class="sr-only">Confirmed</span>`
+          : `<i class="fa-regular fa-clock" aria-hidden="true"></i> Confirm`}</span>
+      </button></li>`).join("")
+    : `<li class="up-empty">${upMode === "wait" ? "Nothing waiting. You're all caught up." : "No bookings coming up."}</li>`;
+  $("upMore").hidden = list.length <= upShow;
+  $("upMore").textContent = `Show more (${list.length - upShow} more)`;
+}
+
 function render() {
+  renderUpcoming();
   dayIn.value = day;
   $("prev").disabled = day <= todayISO();
   $("next").disabled = day >= lastDay();
@@ -210,6 +240,19 @@ detail.addEventListener("change", (e) => {
   $("wErr").textContent = "";
 });
 $("addWalk").addEventListener("click", () => openWalkIn());
+
+// Upcoming list: tap a booking to jump to its day and open it
+$("upList").addEventListener("click", (e) => {
+  const r = e.target.closest("[data-go]");
+  if (!r) return;
+  day = r.dataset.date; selected = r.dataset.go; sent = null; walk = null;
+  render();
+  detail.focus({ preventScroll: true });
+  detail.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+});
+$("upWait").addEventListener("click", () => { upMode = "wait"; upShow = 5; renderUpcoming(); });
+$("upAll").addEventListener("click", () => { upMode = "all"; upShow = 5; renderUpcoming(); });
+$("upMore").addEventListener("click", () => { upShow += 10; renderUpcoming(); });
 
 const go = (n) => { day = addDays(day, n); selected = null; sent = null; walk = null; render(); };
 $("prev").addEventListener("click", () => go(-1));

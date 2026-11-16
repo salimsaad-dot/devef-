@@ -74,7 +74,8 @@ function sampleFor(date) {
         out.push({ id: `s_${date}_${chair}_${t}`, date, start: t, dur, chair, service, name,
           phone: `0${[24, 20, 54, 55, 59][Math.floor(r() * 5)]} ${String(100 + Math.floor(r() * 900))} ${String(1000 + Math.floor(r() * 9000))}`,
           notes: NOTES[Math.floor(r() * NOTES.length)], sample: true });
-        out.at(-1).confirmed = [...out.at(-1).id].reduce((a, c) => a + c.charCodeAt(0), 0) % 3 !== 0;
+        // Samples more than 2 days ahead were booked long ago, so they're already confirmed
+        out.at(-1).confirmed = date > addDays(todayISO(), 2) || [...out.at(-1).id].reduce((a, c) => a + c.charCodeAt(0), 0) % 3 !== 0;
         t += dur;
       } else t += 2 + Math.floor(r() * 3); // chunky gaps, so long styles still find room
     }
@@ -89,6 +90,15 @@ export function bookingsOn(date) {
     .filter((b) => !s.removed.includes(b.id))
     .map((b) => ({ ...b, confirmed: b.confirmed || s.confirmed.includes(b.id) }))
     .sort((a, b) => a.start - b.start || a.chair - b.chair);
+}
+
+/** Every booking from now until the last bookable day, soonest first (today: only ones not finished yet) */
+export function upcoming() {
+  const today = todayISO(), now = new Date().getUTCHours(), out = [];
+  for (let d = today; d <= lastDay(); d = addDays(d, 1)) {
+    for (const b of bookingsOn(d)) if (d > today || b.start + b.dur > now) out.push(b);
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start || a.chair - b.chair);
 }
 
 const freeChairs = (list, start, dur) => {
