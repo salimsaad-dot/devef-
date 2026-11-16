@@ -226,10 +226,15 @@
           <p class="booked-icon" aria-hidden="true"><i class="fa-solid fa-check"></i></p>
           <h3>You're booked!</h3>
           <p class="booked-what" id="bookedWhat"></p>
-          <p class="booked-wa"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> De-Vef will confirm on WhatsApp shortly, on the number you gave.</p>
-          <p class="booked-small">In the real version, De-Vef gets an alert straight away and this time is no longer free for anyone else.</p>
+          <p class="booked-small">Last step: send your booking to De-Vef on WhatsApp. She'll reply to confirm.</p>
           <div class="booked-actions">
-            <a class="btn btn-block" href="bookings.html">See it on the owner's page <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <button class="btn btn-block btn-wa" type="button" id="sendWa"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Send to De-Vef on WhatsApp</button>
+            <div class="wa-sent" id="waSent" hidden>
+              <p class="wa-label">Sent to De-Vef on WhatsApp (preview: nothing was really sent)</p>
+              <p class="wa-bubble" id="waText"></p>
+              <p class="wa-after"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Done! De-Vef will reply on WhatsApp to confirm.</p>
+            </div>
+            <a class="btn btn-line btn-block" href="bookings.html">See it on the owner's page <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
             <button class="btn btn-line btn-block" type="button" id="bookAgain">Book another</button>
           </div>
         </div>

@@ -111,6 +111,37 @@ export function book({ date, start, service, name, phone, notes, hair }) {
   return b;
 }
 
+/** True if one chair is free for the whole of start..start+dur (and it ends by closing time) */
+export function chairFree(date, chair, start, dur) {
+  if (start < SAMPLE.open || start + dur > SAMPLE.close) return false;
+  return !bookingsOn(date).some((b) => b.chair === chair && b.start < start + dur && start < b.start + b.dur);
+}
+
+/** Owner blocks a chair for someone who walked in (this browser only). The website stops offering that time. */
+export function addWalkIn({ date, start, chair, service, name }) {
+  const dur = DURATION[service] || 1;
+  if (!chairFree(date, chair, start, dur)) throw new FullError("That chair is busy then.");
+  const s = read();
+  const b = { id: `w_${Date.now()}`, date, start, dur, chair, service, name: name || "Walk-in", phone: "", notes: "", walkin: true, confirmed: true };
+  s.added.push(b);
+  write(s);
+  return b;
+}
+
+/** The WhatsApp message the client sends De-Vef after booking (real version: wa.me/233546626332?text=...) */
+export function bookingText(b) {
+  return [
+    "Hello De-Vef 👋🏾 I just booked on your website:",
+    "",
+    `*${b.service}*`,
+    `${dayLabel(b.date)}, ${hourLabel(b.start)} – ${hourLabel(b.start + b.dur)}`,
+    `Name: ${b.name}`,
+    `Phone: ${b.phone}`,
+    ...(b.hair ? [`Hair: ${b.hair}`] : []),
+    ...(b.notes ? [`Notes: ${b.notes}`] : []),
+  ].join("\n");
+}
+
 export function cancel(id) {
   const s = read();
   s.added = s.added.filter((b) => b.id !== id);

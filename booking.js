@@ -1,10 +1,11 @@
 // De-Vef Beauty · booking form (PREVIEW: data from demo-store.js, kept in this browser only)
-import { DURATION, todayISO, lastDay, isOpenDay, dayLabel, hourLabel, startTimes, book, FullError } from "./demo-store.js";
+import { DURATION, todayISO, lastDay, isOpenDay, dayLabel, hourLabel, startTimes, book, FullError, bookingText } from "./demo-store.js";
 
 const $ = (id) => document.getElementById(id);
 const form = $("bookForm"), service = $("service"), date = $("date"), slots = $("slots"), hint = $("slotHint");
 const nameIn = $("name"), phone = $("phone"), notes = $("notes"), err = $("err");
 const booked = $("booked");
+let lastBooking = null;
 
 date.min = todayISO();
 date.max = lastDay();
@@ -66,6 +67,9 @@ form.addEventListener("submit", (e) => {
       document.createTextNode(`${b.service}, ${dayLabel(b.date)}`), document.createElement("br"),
       document.createTextNode(`${hourLabel(b.start)} – ${hourLabel(b.start + b.dur)}`)
     );
+    lastBooking = b;
+    $("waSent").hidden = true;
+    $("sendWa").hidden = false;
     form.hidden = true;
     booked.hidden = false;
     booked.focus({ preventScroll: true });
@@ -75,6 +79,16 @@ form.addEventListener("submit", (e) => {
     err.textContent = "Sorry, that time has just filled up. Please pick another.";
     render();
   }
+});
+
+// PREVIEW: shows the message instead of sending it.
+// Real version: window.open(`https://wa.me/233546626332?text=${encodeURIComponent(bookingText(lastBooking))}`)
+$("sendWa").addEventListener("click", () => {
+  if (!lastBooking) return;
+  $("waText").textContent = bookingText(lastBooking);
+  $("sendWa").hidden = true;
+  $("waSent").hidden = false;
+  $("waSent").scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 });
 
 $("bookAgain").addEventListener("click", () => {

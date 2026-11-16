@@ -1,5 +1,5 @@
 // De-Vef Beauty · owner's bookings page (PREVIEW: sample data, this browser only)
-import { SAMPLE, todayISO, addDays, lastDay, isOpenDay, dayLabel, hourLabel, bookingsOn, cancel, resetDemo, confirmBooking, confirmText } from "./demo-store.js";
+import { SAMPLE, todayISO, addDays, lastDay, isOpenDay, dayLabel, hourLabel, bookingsOn, cancel, resetDemo, confirmBooking, confirmText, DURATION, chairFree, addWalkIn, FullError } from "./demo-store.js";
 
 const $ = (id) => document.getElementById(id);
 const board = $("board"), detail = $("detail"), dayIn = $("day");
@@ -13,6 +13,8 @@ while (!isOpenDay(day)) day = addDays(day, 1);
 if (mine && mine.date >= todayISO()) day = mine.date;
 let selected = mine?.id || null;
 let sent = null; // booking whose confirmation message is on show
+let walk = null;  // { chair, start, service, name } while the "Add walk-in" form is open
+const nowHour = () => new Date().getUTCHours(); // Ghana = UTC
 
 dayIn.min = todayISO();
 dayIn.max = lastDay();
@@ -26,6 +28,7 @@ function render() {
   if (!isOpenDay(day)) {
     $("count").textContent = `${dayLabel(day)} · Closed`;
     board.innerHTML = `<p class="board-empty">Closed on Sundays.</p>`;
+    walk = null;
     detail.hidden = true;
     return;
   }
@@ -40,16 +43,59 @@ function render() {
     <div class="board-head"><span></span>${chairs.map((c) => `<span>Chair ${c}</span>`).join("")}</div>
     <div class="board-body">
       <div class="board-times">${hours.map((h) => `<span>${hourLabel(h)}</span>`).join("")}</div>
-      ${chairs.map((c) => `<div class="board-col">${list.filter((b) => b.chair === c).map((b) => `
-        <button type="button" class="appt${b.mine ? " is-new" : ""}${b.confirmed ? "" : " is-pending"}${b.id === selected ? " is-sel" : ""}" data-id="${esc(b.id)}"
+      ${chairs.map((c) => `<div class="board-col" data-chair="${c}">${list.filter((b) => b.chair === c).map((b) => `
+        <button type="button" class="appt${b.mine ? " is-new" : ""}${b.confirmed ? "" : " is-pending"}${b.walkin ? " is-walkin" : ""}${b.id === selected ? " is-sel" : ""}" data-id="${esc(b.id)}"
           style="--start:${b.start - SAMPLE.open};--dur:${b.dur}" aria-label="${esc(`${hourLabel(b.start)} to ${hourLabel(b.start + b.dur)}, ${b.service}, ${b.name}${b.confirmed ? ", confirmed" : ", not confirmed yet"}`)}">
           <span class="appt-time">${hourLabel(b.start)}–${hourLabel(b.start + b.dur)}</span>
           <span class="appt-svc">${esc(b.service)}</span>
           <span class="appt-name">${esc(first(b.name))}</span>
-          ${b.mine ? `<span class="appt-new">New</span>` : ""}
+          ${b.mine ? `<span class="appt-new">New</span>` : ""}${b.walkin ? `<span class="appt-new">Walk-in</span>` : ""}
         </button>`).join("")}</div>`).join("")}
     </div>`;
-  showDetail(list.find((b) => b.id === selected));
+  if (walk) showWalkIn(); else showDetail(list.find((b) => b.id === selected));
+}
+
+/* ---------- Add walk-in ---------- */
+function defaultWalk() {
+  const start = day === todayISO() ? Math.max(SAMPLE.open, Math.min(nowHour(), SAMPLE.close - 1)) : SAMPLE.open;
+  for (let c = 1; c <= SAMPLE.chairs; c++) if (chairFree(day, c, start, 1)) return { chair: c, start };
+  return { chair: 1, start };
+}
+
+function showWalkIn() {
+  const hours = [];
+  for (let h = SAMPLE.open; h < SAMPLE.close; h++) hours.push(h);
+  const opt = (v, label, sel) => `<option value="${v}"${sel ? " selected" : ""}>${label}</option>`;
+  detail.innerHTML = `
+    <div class="detail-top">
+      <div>
+        <p class="detail-when">${esc(dayLabel(day))}</p>
+        <h2>Add a walk-in</h2>
+      </div>
+      <button type="button" class="icon-btn" data-close aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <p class="walk-intro">Someone just sat down? Block the chair here and the website stops offering that time.</p>
+    <form class="walk-form" id="walkForm" novalidate>
+      <div class="f"><label for="wService">Service</label>
+        <select id="wService">${Object.keys(DURATION).map((s) => opt(s, `${s} (${DURATION[s]}h)`, s === (walk.service || "Cornrows"))).join("")}</select></div>
+      <div class="f"><label for="wChair">Chair</label>
+        <select id="wChair">${Array.from({ length: SAMPLE.chairs }, (_, i) => opt(i + 1, `Chair ${i + 1}`, i + 1 === walk.chair)).join("")}</select></div>
+      <div class="f"><label for="wStart">Start</label>
+        <select id="wStart">${hours.map((h) => opt(h, hourLabel(h), h === walk.start)).join("")}</select></div>
+      <div class="f"><label for="wName">Name <span class="opt">(optional)</span></label>
+        <input id="wName" type="text" maxlength="60" placeholder="Walk-in" value="${esc(walk.name || "")}" /></div>
+      <p class="err" id="wErr" role="alert"></p>
+      <button class="btn btn-block" type="submit"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Block this chair</button>
+    </form>`;
+  detail.hidden = false;
+}
+
+function openWalkIn(pre) {
+  walk = pre || defaultWalk();
+  selected = null; sent = null;
+  render();
+  detail.focus({ preventScroll: true });
+  detail.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 
 function showDetail(b) {
@@ -87,9 +133,17 @@ function showDetail(b) {
 
 board.addEventListener("click", (e) => {
   const a = e.target.closest(".appt");
-  if (!a) return;
+  if (!a) {
+    // Tap on an empty spot in a chair column: add a walk-in there
+    const col = e.target.closest(".board-col");
+    if (!col) return;
+    const r = col.getBoundingClientRect();
+    const start = SAMPLE.open + Math.floor((e.clientY - r.top) / (r.height / (SAMPLE.close - SAMPLE.open)));
+    openWalkIn({ chair: Number(col.dataset.chair), start: Math.min(Math.max(start, SAMPLE.open), SAMPLE.close - 1) });
+    return;
+  }
   selected = a.dataset.id;
-  sent = null;
+  sent = null; walk = null;
   render();
   detail.focus({ preventScroll: true });
   detail.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
@@ -97,7 +151,7 @@ board.addEventListener("click", (e) => {
 
 detail.addEventListener("click", (e) => {
   const note = $("detailNote");
-  if (e.target.closest("[data-close]")) { selected = null; render(); return; }
+  if (e.target.closest("[data-close]")) { selected = null; walk = null; render(); return; }
   const demo = e.target.closest("[data-demo]");
   if (demo) {
     const b = bookingsOn(day).find((x) => x.id === selected);
@@ -124,10 +178,35 @@ detail.addEventListener("click", (e) => {
   }
 });
 
-const go = (n) => { day = addDays(day, n); selected = null; sent = null; render(); };
+detail.addEventListener("submit", (e) => {
+  if (e.target.id !== "walkForm") return;
+  e.preventDefault();
+  const v = { service: $("wService").value, chair: Number($("wChair").value), start: Number($("wStart").value), name: $("wName").value.trim() };
+  try {
+    const b = addWalkIn({ date: day, ...v });
+    walk = null; selected = b.id;
+    render();
+    $("count").textContent += ` · Walk-in added. Chair ${b.chair} is blocked ${hourLabel(b.start)}–${hourLabel(b.start + b.dur)} on the website.`;
+  } catch (x) {
+    if (!(x instanceof FullError)) throw x;
+    walk = v;
+    const dur = DURATION[v.service];
+    $("wErr").textContent = v.start + dur > SAMPLE.close
+      ? `${v.service} takes about ${dur}h, so it won't finish before closing. Pick an earlier start.`
+      : `Chair ${v.chair} is busy during ${hourLabel(v.start)}–${hourLabel(v.start + dur)}. Try another chair or time.`;
+  }
+});
+detail.addEventListener("change", (e) => {
+  if (!walk || !e.target.closest("#walkForm")) return;
+  walk = { service: $("wService").value, chair: Number($("wChair").value), start: Number($("wStart").value), name: $("wName").value };
+  $("wErr").textContent = "";
+});
+$("addWalk").addEventListener("click", () => openWalkIn());
+
+const go = (n) => { day = addDays(day, n); selected = null; sent = null; walk = null; render(); };
 $("prev").addEventListener("click", () => go(-1));
 $("next").addEventListener("click", () => go(1));
-dayIn.addEventListener("change", () => { if (dayIn.value) { day = dayIn.value; selected = null; render(); } });
-$("reset").addEventListener("click", () => { resetDemo(); selected = null; render(); });
+dayIn.addEventListener("change", () => { if (dayIn.value) { day = dayIn.value; selected = null; walk = null; render(); } });
+$("reset").addEventListener("click", () => { resetDemo(); selected = null; walk = null; render(); });
 
 render();
